@@ -1,6 +1,20 @@
 ﻿/**********************************************************
  * Demo for Standalone SDK.Created by Darcy on Oct.15 2009*
 ***********************************************************/
+/**
+ * Weng Long Pang 
+ * KATS 2014
+ * 
+ * Valentine D-PASS Project
+ * 
+ * This application provides access to attendance system introduced since late 2013.
+ * 
+ * Attendance raw data and processed data will be obtained from this application.
+ * 
+ * 
+ * 
+ **/
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,14 +28,16 @@ using System.Text.RegularExpressions;
 namespace AttLogs {
   
     public partial class AttLogsMain : Form {
+        //Create Standalone SDK class dynamically.
+        public zkemkeeper.CZKEMClass axCZKEM1 = new zkemkeeper.CZKEMClass();
 
+        // Validation Regex
+        public const string IP_REGEX = @"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b";
+        public const string PORT_REGEX = @"\b\d{2}\b|\b\d{3}\b|\b\d{4}\b|\b\d{5}\b";
 
         public AttLogsMain() {
             InitializeComponent();
         }
-
-        //Create Standalone SDK class dynamicly.
-        public zkemkeeper.CZKEMClass axCZKEM1 = new zkemkeeper.CZKEMClass();
 
         /*************************************************************************************************
         * Before you refer to this demo,we strongly suggest you read the development manual deeply first.*
@@ -35,8 +51,8 @@ namespace AttLogs {
         //when you are using the tcp/ip communication,you can distinguish different devices by their IP address.
         private void btnConnect_Click(object sender, EventArgs e) {
             // Move all these into separated threading...
-            Regex ipRegex = new Regex(@"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b");
-            Regex portRegex = new Regex(@"\b\d{2}\b|\b\d{3}\b|\b\d{4}\b|\b\d{5}\b");
+            Regex ipRegex = new Regex(IP_REGEX);
+            Regex portRegex = new Regex(PORT_REGEX);
 
 
             // Validation Area
@@ -44,97 +60,39 @@ namespace AttLogs {
             Match portMatch = portRegex.Match(txtPort.Text.Trim());
 
 
-            if (txtIP.Text.Trim() == "" || txtPort.Text.Trim() == "" || !ipMatch.Success || !portMatch.Success)
-            {
+            if (!ipMatch.Success || !portMatch.Success){
                 MessageBox.Show("IP and Port cannot be null or incorrect", "Error");
                 return;
             }
             int idwErrorCode = 0;
 
             Cursor = Cursors.WaitCursor;
-            if (bIsConnected)
-            {
+            if (bIsConnected) {
                 // Disconnection Procedures
                 axCZKEM1.Disconnect();
                 bIsConnected = false;
                 btnConnect.Text = "Connect";
                 lblState.Text = "Current State:DisConnected";
                 Cursor = Cursors.Default;
-                return;
+                return; // Leave the application immediately
             }
             // Connection procedure
             bIsConnected = axCZKEM1.Connect_Net(txtIP.Text, Convert.ToInt32(txtPort.Text));
-
+            // This particular part may spend a lot of time...
 
             // Check connection result
-            if (bIsConnected)
-            {
+            if (bIsConnected) {
                 btnConnect.Text = "DisConnect";
                 btnConnect.Refresh();
                 lblState.Text = "Current State:Connected";
                 iMachineNumber = 1;//In fact,when you are using the tcp/ip communication,this parameter will be ignored,that is any integer will all right.Here we use 1.
                 axCZKEM1.RegEvent(iMachineNumber, 65535);//Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
-            }
-            else
-            {
+            } else {
                 axCZKEM1.GetLastError(ref idwErrorCode);
                 MessageBox.Show("Unable to connect the device,ErrorCode=" + idwErrorCode.ToString(), "Error");
             }
             Cursor = Cursors.Default;
         }
-
-        //If your device supports the SerialPort communications, you can refer to this.
-        private void btnRsConnect_Click(object sender, EventArgs e)
-        {
-            if (cbPort.Text.Trim() == "" || cbBaudRate.Text.Trim() == "" || txtMachineSN.Text.Trim() == "")
-            {
-                MessageBox.Show("Port,BaudRate and MachineSN cannot be null", "Error");
-                return;
-            }
-            int idwErrorCode = 0;
-            //accept serialport number from string like "COMi"
-            int iPort;
-            string sPort = cbPort.Text.Trim();
-            for (iPort = 1; iPort < 10; iPort++)
-            {
-                if (sPort.IndexOf(iPort.ToString()) > -1)
-                {
-                    break;
-                }
-            }
-
-            Cursor = Cursors.WaitCursor;
-            if (btnRsConnect.Text == "Disconnect")
-            {
-                axCZKEM1.Disconnect();
-                bIsConnected = false;
-                btnRsConnect.Text = "Connect";
-                btnRsConnect.Refresh();
-                lblState.Text = "Current State:Disconnected";
-                Cursor = Cursors.Default;
-                return;
-            }
-
-            iMachineNumber = Convert.ToInt32(txtMachineSN.Text.Trim());//when you are using the serial port communication,you can distinguish different devices by their serial port number.
-            bIsConnected = axCZKEM1.Connect_Com(iPort, iMachineNumber, Convert.ToInt32(cbBaudRate.Text.Trim()));
-
-            if (bIsConnected == true)
-            {
-                btnRsConnect.Text = "Disconnect";
-                btnRsConnect.Refresh();
-                lblState.Text = "Current State:Connected";
-
-                axCZKEM1.RegEvent(iMachineNumber, 65535);//Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
-            }
-            else
-            {
-                axCZKEM1.GetLastError(ref idwErrorCode);
-                MessageBox.Show("Unable to connect the device,ErrorCode=" + idwErrorCode.ToString(), "Error");
-            }
-
-            Cursor = Cursors.Default;
-        }
-
         #endregion
 
         /*************************************************************************************************
@@ -144,9 +102,8 @@ namespace AttLogs {
         #region AttLogs
 
         //Download the attendance records from the device(For both Black&White and TFT screen devices).
-        private void btnGetGeneralLogData_Click(object sender, EventArgs e)
-        {
-            if (bIsConnected == false)
+        private void btnGetGeneralLogData_Click(object sender, EventArgs e) {
+            if (!bIsConnected)
             {
                 MessageBox.Show("Please connect the device first", "Error");
                 return;
@@ -170,8 +127,9 @@ namespace AttLogs {
             Cursor = Cursors.WaitCursor;
             lvLogs.Items.Clear();
             axCZKEM1.EnableDevice(iMachineNumber, false);//disable the device
-            if (axCZKEM1.ReadGeneralLogData(iMachineNumber))//read all the attendance records to the memory
-            {
+            if (axCZKEM1.ReadGeneralLogData(iMachineNumber)) {
+                //read all the attendance records to the memory
+                // check for documentation about this area....
                 while (axCZKEM1.SSR_GetGeneralLogData(iMachineNumber, out sdwEnrollNumber, out idwVerifyMode,
                             out idwInOutMode, out idwYear, out idwMonth, out idwDay, out idwHour, out idwMinute, out idwSecond, ref idwWorkcode))//get records from the memory
                 {
