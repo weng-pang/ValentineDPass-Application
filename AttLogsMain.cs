@@ -25,15 +25,13 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Text.RegularExpressions;
 
+
 namespace AttLogs {
   
     public partial class AttLogsMain : Form {
         //Create Standalone SDK class dynamically.
-        public zkemkeeper.CZKEMClass axCZKEM1 = new zkemkeeper.CZKEMClass();
-
-        // Validation Regex
-        public const string IP_REGEX = @"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b";
-        public const string PORT_REGEX = @"\b\d{2}\b|\b\d{3}\b|\b\d{4}\b|\b\d{5}\b";
+        //public zkemkeeper.CZKEMClass axCZKEM1 = new zkemkeeper.CZKEMClass();
+        private Connector attendanceConnection = new Connector();
 
         public AttLogsMain() {
             InitializeComponent();
@@ -44,51 +42,47 @@ namespace AttLogs {
         * This part is for demonstrating the communication with your device.                             *
         * ************************************************************************************************/
         #region Communication
-        private bool bIsConnected = false;//the boolean value identifies whether the device is connected
+        //private bool bIsConnected = false;//the boolean value identifies whether the device is connected
         private int iMachineNumber = 1;//the serial number of the device.After connecting the device ,this value will be changed.
 
         //If your device supports the TCP/IP communications, you can refer to this.
         //when you are using the tcp/ip communication,you can distinguish different devices by their IP address.
-        private void btnConnect_Click(object sender, EventArgs e) {
-            // Move all these into separated threading...
-            Regex ipRegex = new Regex(IP_REGEX);
-            Regex portRegex = new Regex(PORT_REGEX);
-
-
-            // Validation Area
-            Match ipMatch = ipRegex.Match(txtIP.Text.Trim());
-            Match portMatch = portRegex.Match(txtPort.Text.Trim());
-
-
-            if (!ipMatch.Success || !portMatch.Success){
+        private void btnConnect_Click(object sender, EventArgs e) 
+        {
+            if (!Validator.checkIpAddress(txtIP.Text) || !Validator.checkPort(txtPort.Text)){
                 MessageBox.Show("IP and Port cannot be null or incorrect", "Error");
                 return;
             }
             int idwErrorCode = 0;
 
             Cursor = Cursors.WaitCursor;
-            if (bIsConnected) {
+            if (attendanceConnection.isConnected())
+            {
                 // Disconnection Procedures
-                axCZKEM1.Disconnect();
-                bIsConnected = false;
+                attendanceConnection.disconnect();
+                //axCZKEM1.Disconnect();
+                //bIsConnected = false;
                 btnConnect.Text = "Connect";
                 lblState.Text = "Current State:DisConnected";
                 Cursor = Cursors.Default;
                 return; // Leave the application immediately
             }
             // Connection procedure
-            bIsConnected = axCZKEM1.Connect_Net(txtIP.Text, Convert.ToInt32(txtPort.Text));
+            //bIsConnected = attendanceConnection.connect(txtIP.Text, txtPort.Text);
+            //bIsConnected = axCZKEM1.Connect_Net(txtIP.Text, Convert.ToInt32(txtPort.Text));
             // This particular part may spend a lot of time...
 
             // Check connection result
-            if (bIsConnected) {
+            if (attendanceConnection.connect(txtIP.Text, txtPort.Text))
+            {
                 btnConnect.Text = "DisConnect";
                 btnConnect.Refresh();
                 lblState.Text = "Current State:Connected";
                 iMachineNumber = 1;//In fact,when you are using the tcp/ip communication,this parameter will be ignored,that is any integer will all right.Here we use 1.
-                axCZKEM1.RegEvent(iMachineNumber, 65535);//Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
+                attendanceConnection.getAttendance().RegEvent(iMachineNumber, 65535);
+                //axCZKEM1.RegEvent(iMachineNumber, 65535);//Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
             } else {
-                axCZKEM1.GetLastError(ref idwErrorCode);
+                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
                 MessageBox.Show("Unable to connect the device,ErrorCode=" + idwErrorCode.ToString(), "Error");
             }
             Cursor = Cursors.Default;
@@ -103,11 +97,13 @@ namespace AttLogs {
 
         //Download the attendance records from the device(For both Black&White and TFT screen devices).
         private void btnGetGeneralLogData_Click(object sender, EventArgs e) {
-            if (!bIsConnected)
+            if (!attendanceConnection.isConnected())
             {
                 MessageBox.Show("Please connect the device first", "Error");
                 return;
             }
+
+            AttendanceRecord aRecord = new AttendanceRecord();
             int idwErrorCode=0;
 
             string sdwEnrollNumber = "";
@@ -126,11 +122,12 @@ namespace AttLogs {
 
             Cursor = Cursors.WaitCursor;
             lvLogs.Items.Clear();
-            axCZKEM1.EnableDevice(iMachineNumber, false);//disable the device
-            if (axCZKEM1.ReadGeneralLogData(iMachineNumber)) {
+            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, false);//disable the device
+            if (attendanceConnection.getAttendance().ReadGeneralLogData(iMachineNumber))
+            {
                 //read all the attendance records to the memory
                 // check for documentation about this area....
-                while (axCZKEM1.SSR_GetGeneralLogData(iMachineNumber, out sdwEnrollNumber, out idwVerifyMode,
+                while (attendanceConnection.getAttendance().SSR_GetGeneralLogData(iMachineNumber, out sdwEnrollNumber, out idwVerifyMode,
                             out idwInOutMode, out idwYear, out idwMonth, out idwDay, out idwHour, out idwMinute, out idwSecond, ref idwWorkcode))//get records from the memory
                 {
                     iGLCount++;
@@ -146,7 +143,7 @@ namespace AttLogs {
             else
             {
                 Cursor = Cursors.Default;
-                axCZKEM1.GetLastError(ref idwErrorCode);
+                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
 
                 if (idwErrorCode != 0)
                 {
@@ -157,14 +154,14 @@ namespace AttLogs {
                     MessageBox.Show("No data from terminal returns!","Error");
                 }
             }
-            axCZKEM1.EnableDevice(iMachineNumber, true);//enable the device
+            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, true);//enable the device
             Cursor = Cursors.Default;
         }
 
         //Clear all attendance records from terminal
         private void btnClearGLog_Click(object sender, EventArgs e)
         {
-            if (bIsConnected == false)
+            if (!attendanceConnection.isConnected())
             {
                 MessageBox.Show("Please connect the device first", "Error");
                 return;
@@ -172,24 +169,24 @@ namespace AttLogs {
             int idwErrorCode = 0;
 
             lvLogs.Items.Clear();
-            axCZKEM1.EnableDevice(iMachineNumber, false);//disable the device
-            if (axCZKEM1.ClearGLog(iMachineNumber))
+            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, false);//disable the device
+            if (attendanceConnection.getAttendance().ClearGLog(iMachineNumber))
             {
-                axCZKEM1.RefreshData(iMachineNumber);//the data in the device should be refreshed
+                attendanceConnection.getAttendance().RefreshData(iMachineNumber);//the data in the device should be refreshed
                 MessageBox.Show("All att Logs have been cleared from teiminal!", "Success");
             }
             else
             {
-                axCZKEM1.GetLastError(ref idwErrorCode);
+                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
                 MessageBox.Show("Operation failed,ErrorCode=" + idwErrorCode.ToString(), "Error");
             }
-            axCZKEM1.EnableDevice(iMachineNumber, true);//enable the device
+            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, true);//enable the device
         }
 
         //Get the count of attendance records in from ternimal
         private void btnGetDeviceStatus_Click(object sender, EventArgs e)
         {
-            if (bIsConnected == false)
+            if (!attendanceConnection.isConnected())
             {
                 MessageBox.Show("Please connect the device first", "Error");
                 return;
@@ -197,17 +194,17 @@ namespace AttLogs {
             int idwErrorCode = 0;
             int iValue = 0;
 
-            axCZKEM1.EnableDevice(iMachineNumber, false);//disable the device
-            if (axCZKEM1.GetDeviceStatus(iMachineNumber, 6, ref iValue)) //Here we use the function "GetDeviceStatus" to get the record's count.The parameter "Status" is 6.
+            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, false);//disable the device
+            if (attendanceConnection.getAttendance().GetDeviceStatus(iMachineNumber, 6, ref iValue)) //Here we use the function "GetDeviceStatus" to get the record's count.The parameter "Status" is 6.
             {
                 MessageBox.Show("The count of the AttLogs in the device is " + iValue.ToString(), "Success");
             }
             else
             {
-                axCZKEM1.GetLastError(ref idwErrorCode);
+                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
                 MessageBox.Show("Operation failed,ErrorCode=" + idwErrorCode.ToString(), "Error");
             }
-            axCZKEM1.EnableDevice(iMachineNumber, true);//enable the device
+            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, true);//enable the device
         }
         #endregion
 

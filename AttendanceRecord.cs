@@ -7,6 +7,12 @@ namespace AttLogs
     class AttendanceRecord
     {
         private string sdwEnrollNumber = "";
+
+        public string SdwEnrollNumber
+        {
+            get { return sdwEnrollNumber; }
+            set { sdwEnrollNumber = value; }
+        }
         private int idwVerifyMode = 0;
 
         public int IdwVerifyMode1

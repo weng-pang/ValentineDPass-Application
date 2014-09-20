@@ -301,14 +301,14 @@
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // btnRsConnect
-            // 
+            // This part is about to be removed...
             this.btnRsConnect.Location = new System.Drawing.Point(183, 43);
             this.btnRsConnect.Name = "btnRsConnect";
             this.btnRsConnect.Size = new System.Drawing.Size(75, 23);
             this.btnRsConnect.TabIndex = 11;
             this.btnRsConnect.Text = "Connect";
             this.btnRsConnect.UseVisualStyleBackColor = true;
-            this.btnRsConnect.Click += new System.EventHandler(this.btnRsConnect_Click);
+            //this.btnRsConnect.Click += new System.EventHandler(this.btnRsConnect_Click);
             // 
             // txtMachineSN
             // 
