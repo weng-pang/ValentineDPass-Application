@@ -30,8 +30,8 @@ namespace AttLogs {
   
     public partial class AttLogsMain : Form {
         //Create Standalone SDK class dynamically.
-        //public zkemkeeper.CZKEMClass axCZKEM1 = new zkemkeeper.CZKEMClass();
         private Connector attendanceConnection = new Connector();
+        List<AttendanceRecord> attendanceRecordList;
 
         public AttLogsMain() {
             InitializeComponent();
@@ -42,8 +42,7 @@ namespace AttLogs {
         * This part is for demonstrating the communication with your device.                             *
         * ************************************************************************************************/
         #region Communication
-        //private bool bIsConnected = false;//the boolean value identifies whether the device is connected
-        private int iMachineNumber = 1;//the serial number of the device.After connecting the device ,this value will be changed.
+        //private int iMachineNumber = 1;//the serial number of the device.After connecting the device ,this value will be changed.
 
         //If your device supports the TCP/IP communications, you can refer to this.
         //when you are using the tcp/ip communication,you can distinguish different devices by their IP address.
@@ -53,39 +52,21 @@ namespace AttLogs {
                 MessageBox.Show("IP and Port cannot be null or incorrect", "Error");
                 return;
             }
-            int idwErrorCode = 0;
 
             Cursor = Cursors.WaitCursor;
             if (attendanceConnection.isConnected())
             {
                 // Disconnection Procedures
                 attendanceConnection.disconnect();
-                //axCZKEM1.Disconnect();
-                //bIsConnected = false;
                 btnConnect.Text = "Connect";
                 lblState.Text = "Current State:DisConnected";
                 Cursor = Cursors.Default;
+                enableButtons(false);
                 return; // Leave the application immediately
             }
             // Connection procedure
-            //bIsConnected = attendanceConnection.connect(txtIP.Text, txtPort.Text);
-            //bIsConnected = axCZKEM1.Connect_Net(txtIP.Text, Convert.ToInt32(txtPort.Text));
-            // This particular part may spend a lot of time...
-
-            // Check connection result
-            if (attendanceConnection.connect(txtIP.Text, txtPort.Text))
-            {
-                btnConnect.Text = "DisConnect";
-                btnConnect.Refresh();
-                lblState.Text = "Current State:Connected";
-                iMachineNumber = 1;//In fact,when you are using the tcp/ip communication,this parameter will be ignored,that is any integer will all right.Here we use 1.
-                attendanceConnection.getAttendance().RegEvent(iMachineNumber, 65535);
-                //axCZKEM1.RegEvent(iMachineNumber, 65535);//Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
-            } else {
-                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
-                MessageBox.Show("Unable to connect the device,ErrorCode=" + idwErrorCode.ToString(), "Error");
-            }
-            Cursor = Cursors.Default;
+            backgroundWorker1.RunWorkerAsync();
+            
         }
         #endregion
 
@@ -103,59 +84,52 @@ namespace AttLogs {
                 return;
             }
 
-            AttendanceRecord aRecord = new AttendanceRecord();
-            int idwErrorCode=0;
+            downloadAttendanceRecord.RunWorkerAsync();
 
-            string sdwEnrollNumber = "";
-            int idwVerifyMode=0;
-            int idwInOutMode=0;
-            int idwYear=0;
-            int idwMonth=0;
-            int idwDay=0;
-            int idwHour=0;
-            int idwMinute=0;
-            int idwSecond = 0;
-            int idwWorkcode = 0;
+            //AttendanceRecord aRecord = new AttendanceRecord();
+            //int idwErrorCode=0;
             
-            int iGLCount = 0;
-            int iIndex = 0;
+            //int iGLCount = 0;
+            //int iIndex = 0;
 
-            Cursor = Cursors.WaitCursor;
-            lvLogs.Items.Clear();
-            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, false);//disable the device
-            if (attendanceConnection.getAttendance().ReadGeneralLogData(iMachineNumber))
-            {
-                //read all the attendance records to the memory
-                // check for documentation about this area....
-                while (attendanceConnection.getAttendance().SSR_GetGeneralLogData(iMachineNumber, out sdwEnrollNumber, out idwVerifyMode,
-                            out idwInOutMode, out idwYear, out idwMonth, out idwDay, out idwHour, out idwMinute, out idwSecond, ref idwWorkcode))//get records from the memory
-                {
-                    iGLCount++;
-                    lvLogs.Items.Add(iGLCount.ToString());
-                    lvLogs.Items[iIndex].SubItems.Add(sdwEnrollNumber);//modify by Darcy on Nov.26 2009
-                    lvLogs.Items[iIndex].SubItems.Add(idwVerifyMode.ToString());
-                    lvLogs.Items[iIndex].SubItems.Add(idwInOutMode.ToString());
-                    lvLogs.Items[iIndex].SubItems.Add(idwYear.ToString() + "-" + idwMonth.ToString() + "-" + idwDay.ToString() + " " + idwHour.ToString() + ":" + idwMinute.ToString() + ":" + idwSecond.ToString());
-                    lvLogs.Items[iIndex].SubItems.Add(idwWorkcode.ToString());
-                    iIndex++;
-                }
-            }
-            else
-            {
-                Cursor = Cursors.Default;
-                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
+            //Cursor = Cursors.WaitCursor;
+            //lvLogs.Items.Clear();
+            //attendanceConnection.enableDevice(false);//disable the device
+            //try 
+            //{
+            //    //read all the attendance records to the memory
+            //    // check for documentation about this area....
+            //    System.Diagnostics.Debug.WriteLine("Obtaining List");
+            //    List<AttendanceRecord> attendanceRecordList = attendanceConnection.readLogData();
+            //    System.Diagnostics.Debug.WriteLine("List Obtained");
+            //    foreach (AttendanceRecord eachRecord in attendanceRecordList)
+            //    {
+            //        iGLCount++;
+            //        lvLogs.Items.Add(iGLCount.ToString());
+            //        lvLogs.Items[iIndex].SubItems.Add(eachRecord.SdwEnrollNumber);//modify by Darcy on Nov.26 2009
+            //        lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwVerifyMode.ToString());
+            //        lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwInOutMode.ToString());
+            //        lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwYear.ToString() + "-" + eachRecord.IdwMonth.ToString() + "-" + eachRecord.IdwDay.ToString() + " " + eachRecord.IdwHour.ToString() + ":" + eachRecord.IdwMinute.ToString() + ":" + eachRecord.IdwSecond.ToString());
+            //        lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwWorkcode.ToString());
+            //        iIndex++;
+            //    }
+            //}
+            //catch (Exception f)
+            //{
+            //    Cursor = Cursors.Default;
+            //    attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
 
-                if (idwErrorCode != 0)
-                {
-                    MessageBox.Show("Reading data from terminal failed,ErrorCode: " + idwErrorCode.ToString(),"Error");
-                }
-                else
-                {
-                    MessageBox.Show("No data from terminal returns!","Error");
-                }
-            }
-            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, true);//enable the device
-            Cursor = Cursors.Default;
+            //    if (idwErrorCode != 0)
+            //    {
+            //        MessageBox.Show("Reading data from terminal failed,ErrorCode: " + idwErrorCode.ToString(),"Error");
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("No data from terminal returns!","Error");
+            //    }
+            //}
+            //attendanceConnection.enableDevice(true);//enable the device
+            //Cursor = Cursors.Default;
         }
 
         //Clear all attendance records from terminal
@@ -169,18 +143,19 @@ namespace AttLogs {
             int idwErrorCode = 0;
 
             lvLogs.Items.Clear();
-            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, false);//disable the device
-            if (attendanceConnection.getAttendance().ClearGLog(iMachineNumber))
+            attendanceConnection.enableDevice(false);//disable the device
+
+            try 
             {
-                attendanceConnection.getAttendance().RefreshData(iMachineNumber);//the data in the device should be refreshed
+                attendanceConnection.deleteAllRecord();
                 MessageBox.Show("All att Logs have been cleared from teiminal!", "Success");
             }
-            else
+            catch (Exception f)
             {
                 attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
                 MessageBox.Show("Operation failed,ErrorCode=" + idwErrorCode.ToString(), "Error");
             }
-            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, true);//enable the device
+            attendanceConnection.enableDevice(true);//enable the device
         }
 
         //Get the count of attendance records in from ternimal
@@ -194,19 +169,114 @@ namespace AttLogs {
             int idwErrorCode = 0;
             int iValue = 0;
 
-            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, false);//disable the device
-            if (attendanceConnection.getAttendance().GetDeviceStatus(iMachineNumber, 6, ref iValue)) //Here we use the function "GetDeviceStatus" to get the record's count.The parameter "Status" is 6.
+            attendanceConnection.enableDevice(false);//disable the device
+            try //Here we use the function "GetDeviceStatus" to get the record's count.The parameter "Status" is 6.
             {
+                iValue = attendanceConnection.getDeviceStatus(Connector.COUNT_ALL_ATTENDANCE_ENTRY);
                 MessageBox.Show("The count of the AttLogs in the device is " + iValue.ToString(), "Success");
             }
-            else
+            catch (Exception f)
             {
                 attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
                 MessageBox.Show("Operation failed,ErrorCode=" + idwErrorCode.ToString(), "Error");
             }
-            attendanceConnection.getAttendance().EnableDevice(iMachineNumber, true);//enable the device
+            attendanceConnection.enableDevice(true);//enable the device
         }
         #endregion
+
+        private void enableButtons(bool status)
+        {
+            // Enable buttons
+            btnGetDeviceStatus.Enabled = status;
+            btnGetGeneralLogData.Enabled = status;
+            btnClearGLog.Enabled = status;
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Add Long Operation here
+            attendanceConnection.connect(txtIP.Text, txtPort.Text);
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            int idwErrorCode = 0;
+            // Check connection result
+            if (attendanceConnection.isConnected())
+            {
+                // This method is not allowed
+                btnConnect.Text = "DisConnect";
+                btnConnect.Refresh();
+                lblState.Text = "Current State:Connected";
+                //iMachineNumber = 1;//In fact,when you are using the tcp/ip communication,this parameter will be ignored,that is any integer will all right.Here we use 1.
+                //attendanceConnection.getAttendance().RegEvent(iMachineNumber, 65535);//Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
+                enableButtons(true);
+            }
+            else
+            {
+                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
+                MessageBox.Show("Unable to connect the device,ErrorCode=" + idwErrorCode.ToString(), "Error");
+            }
+            Cursor = Cursors.Default;
+        }
+
+        private void downloadAttendanceRecord_DoWork(object sender, DoWorkEventArgs e)
+        {
+            Invoke((MethodInvoker)(() => {
+            //AttendanceRecord aRecord = new AttendanceRecord();
+            int idwErrorCode = 0;
+
+            Cursor = Cursors.WaitCursor;
+            
+            attendanceConnection.enableDevice(false);//disable the device
+            try
+            {
+                //read all the attendance records to the memory
+                // check for documentation about this area....
+                System.Diagnostics.Debug.WriteLine("Obtaining List");
+                attendanceRecordList = attendanceConnection.readLogData();
+                System.Diagnostics.Debug.WriteLine("List Obtained");
+                
+            }
+            catch (Exception f)
+            {
+                Cursor = Cursors.Default;
+                attendanceConnection.getAttendance().GetLastError(ref idwErrorCode);
+
+                if (idwErrorCode != 0)
+                {
+                    MessageBox.Show("Reading data from terminal failed,ErrorCode: " + idwErrorCode.ToString(), "Error");
+                }
+                else
+                {
+                    MessageBox.Show("No data from terminal returns!", "Error");
+                }
+            }
+            attendanceConnection.enableDevice(true);//enable the device
+            }));
+        }
+
+        private void downloadAttendanceRecord_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            Invoke((MethodInvoker)(() => {
+            lvLogs.Items.Clear();
+            int iGLCount = 0;
+            int iIndex = 0;
+            foreach (AttendanceRecord eachRecord in attendanceRecordList)
+            {
+                iGLCount++;
+                lvLogs.Items.Add(iGLCount.ToString());
+                lvLogs.Items[iIndex].SubItems.Add(eachRecord.SdwEnrollNumber);//modify by Darcy on Nov.26 2009
+                lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwVerifyMode.ToString());
+                lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwInOutMode.ToString());
+                lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwYear.ToString() + "-" + eachRecord.IdwMonth.ToString() + "-" + eachRecord.IdwDay.ToString() + " " + eachRecord.IdwHour.ToString() + ":" + eachRecord.IdwMinute.ToString() + ":" + eachRecord.IdwSecond.ToString());
+                lvLogs.Items[iIndex].SubItems.Add(eachRecord.IdwWorkcode.ToString());
+                iIndex++;
+            }
+            Cursor = Cursors.Default;
+            }));
+        }
+
 
    }
 } 

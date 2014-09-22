@@ -15,12 +15,6 @@ namespace AttLogs
         }
         private int idwVerifyMode = 0;
 
-        public int IdwVerifyMode1
-        {
-            get { return idwVerifyMode; }
-            set { idwVerifyMode = value; }
-        }
-
         public int IdwVerifyMode
         {
             get { return idwVerifyMode; }
@@ -30,8 +24,8 @@ namespace AttLogs
 
         public int IdwInOutMode
         {
-            get { return IdwInOutMode; }
-            set { IdwInOutMode = value; }
+            get { return idwInOutMode; }
+            set { idwInOutMode = value; }
         }
        private int idwYear = 0;
 
@@ -83,19 +77,5 @@ namespace AttLogs
             set { idwWorkcode = value; }
         }
 
-        private int iGLCount = 0;
-
-        public int IGLCount
-        {
-            get { return iGLCount; }
-            set { iGLCount = value; }
-        }
-        private int iIndex = 0;
-
-        public int IIndex
-        {
-            get { return iIndex; }
-            set { iIndex = value; }
-        }
     }
 }

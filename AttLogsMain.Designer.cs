@@ -36,12 +36,12 @@
             this.btnGetDeviceStatus = new System.Windows.Forms.Button();
             this.btnGetGeneralLogData = new System.Windows.Forms.Button();
             this.lvLogs = new System.Windows.Forms.ListView();
-            this.lvLogsch1 = new System.Windows.Forms.ColumnHeader();
-            this.lvLogsch2 = new System.Windows.Forms.ColumnHeader();
-            this.lvLogsch3 = new System.Windows.Forms.ColumnHeader();
-            this.lvLogsch4 = new System.Windows.Forms.ColumnHeader();
-            this.lvLogsch5 = new System.Windows.Forms.ColumnHeader();
-            this.lvLogsch6 = new System.Windows.Forms.ColumnHeader();
+            this.lvLogsch1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lvLogsch2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lvLogsch3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lvLogsch4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lvLogsch5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lvLogsch6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -60,6 +60,8 @@
             this.cbPort = new System.Windows.Forms.ComboBox();
             this.label5 = new System.Windows.Forms.Label();
             this.lblState = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.downloadAttendanceRecord = new System.ComponentModel.BackgroundWorker();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox2.SuspendLayout();
@@ -91,7 +93,7 @@
             this.label10.ForeColor = System.Drawing.Color.Red;
             this.label10.Location = new System.Drawing.Point(126, 317);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(155, 12);
+            this.label10.Size = new System.Drawing.Size(123, 13);
             this.label10.TabIndex = 11;
             this.label10.Text = "Clear all attendance logs";
             // 
@@ -101,7 +103,7 @@
             this.label9.ForeColor = System.Drawing.Color.Red;
             this.label9.Location = new System.Drawing.Point(126, 291);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(131, 12);
+            this.label9.Size = new System.Drawing.Size(99, 13);
             this.label9.TabIndex = 10;
             this.label9.Text = "Get the total of logs";
             // 
@@ -111,12 +113,13 @@
             this.label3.ForeColor = System.Drawing.Color.Red;
             this.label3.Location = new System.Drawing.Point(127, 263);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(119, 12);
+            this.label3.Size = new System.Drawing.Size(103, 13);
             this.label3.TabIndex = 7;
             this.label3.Text = "Get attendance logs";
             // 
             // btnClearGLog
             // 
+            this.btnClearGLog.Enabled = false;
             this.btnClearGLog.Location = new System.Drawing.Point(12, 311);
             this.btnClearGLog.Name = "btnClearGLog";
             this.btnClearGLog.Size = new System.Drawing.Size(105, 23);
@@ -127,6 +130,7 @@
             // 
             // btnGetDeviceStatus
             // 
+            this.btnGetDeviceStatus.Enabled = false;
             this.btnGetDeviceStatus.Location = new System.Drawing.Point(12, 285);
             this.btnGetDeviceStatus.Name = "btnGetDeviceStatus";
             this.btnGetDeviceStatus.Size = new System.Drawing.Size(105, 23);
@@ -137,6 +141,7 @@
             // 
             // btnGetGeneralLogData
             // 
+            this.btnGetGeneralLogData.Enabled = false;
             this.btnGetGeneralLogData.Location = new System.Drawing.Point(12, 258);
             this.btnGetGeneralLogData.Name = "btnGetGeneralLogData";
             this.btnGetGeneralLogData.Size = new System.Drawing.Size(105, 23);
@@ -228,10 +233,10 @@
             this.tabPage1.Controls.Add(this.btnConnect);
             this.tabPage1.Cursor = System.Windows.Forms.Cursors.Default;
             this.tabPage1.ForeColor = System.Drawing.Color.DarkBlue;
-            this.tabPage1.Location = new System.Drawing.Point(4, 21);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(441, 77);
+            this.tabPage1.Size = new System.Drawing.Size(441, 76);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "TCP/IP";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -241,7 +246,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(257, 15);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(29, 12);
+            this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 9;
             this.label2.Text = "Port";
             // 
@@ -250,7 +255,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(87, 15);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(17, 12);
+            this.label1.Size = new System.Drawing.Size(17, 13);
             this.label1.TabIndex = 8;
             this.label1.Text = "IP";
             // 
@@ -258,7 +263,7 @@
             // 
             this.txtPort.Location = new System.Drawing.Point(300, 11);
             this.txtPort.Name = "txtPort";
-            this.txtPort.Size = new System.Drawing.Size(53, 21);
+            this.txtPort.Size = new System.Drawing.Size(53, 20);
             this.txtPort.TabIndex = 7;
             this.txtPort.Text = "4370";
             // 
@@ -266,9 +271,9 @@
             // 
             this.txtIP.Location = new System.Drawing.Point(118, 11);
             this.txtIP.Name = "txtIP";
-            this.txtIP.Size = new System.Drawing.Size(95, 21);
+            this.txtIP.Size = new System.Drawing.Size(95, 20);
             this.txtIP.TabIndex = 6;
-            this.txtIP.Text = "192.168.1.201";
+            this.txtIP.Text = "182.93.7.218";
             // 
             // btnConnect
             // 
@@ -292,29 +297,28 @@
             this.tabPage2.Controls.Add(this.cbPort);
             this.tabPage2.Controls.Add(this.label5);
             this.tabPage2.ForeColor = System.Drawing.Color.DarkBlue;
-            this.tabPage2.Location = new System.Drawing.Point(4, 21);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(441, 77);
+            this.tabPage2.Size = new System.Drawing.Size(441, 76);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "RS232/485";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // btnRsConnect
-            // This part is about to be removed...
+            // 
             this.btnRsConnect.Location = new System.Drawing.Point(183, 43);
             this.btnRsConnect.Name = "btnRsConnect";
             this.btnRsConnect.Size = new System.Drawing.Size(75, 23);
             this.btnRsConnect.TabIndex = 11;
             this.btnRsConnect.Text = "Connect";
             this.btnRsConnect.UseVisualStyleBackColor = true;
-            //this.btnRsConnect.Click += new System.EventHandler(this.btnRsConnect_Click);
             // 
             // txtMachineSN
             // 
             this.txtMachineSN.Location = new System.Drawing.Point(356, 10);
             this.txtMachineSN.Name = "txtMachineSN";
-            this.txtMachineSN.Size = new System.Drawing.Size(56, 21);
+            this.txtMachineSN.Size = new System.Drawing.Size(56, 20);
             this.txtMachineSN.TabIndex = 10;
             this.txtMachineSN.Text = "1";
             // 
@@ -323,7 +327,7 @@
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(284, 14);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(59, 12);
+            this.label7.Size = new System.Drawing.Size(63, 13);
             this.label7.TabIndex = 9;
             this.label7.Text = "MachineSN";
             // 
@@ -340,7 +344,7 @@
             "115200"});
             this.cbBaudRate.Location = new System.Drawing.Point(206, 10);
             this.cbBaudRate.Name = "cbBaudRate";
-            this.cbBaudRate.Size = new System.Drawing.Size(65, 20);
+            this.cbBaudRate.Size = new System.Drawing.Size(65, 21);
             this.cbBaudRate.TabIndex = 6;
             this.cbBaudRate.Text = "115200";
             // 
@@ -349,7 +353,7 @@
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(140, 14);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(53, 12);
+            this.label6.Size = new System.Drawing.Size(55, 13);
             this.label6.TabIndex = 8;
             this.label6.Text = "BaudRate";
             // 
@@ -368,7 +372,7 @@
             "COM9"});
             this.cbPort.Location = new System.Drawing.Point(71, 10);
             this.cbPort.Name = "cbPort";
-            this.cbPort.Size = new System.Drawing.Size(56, 20);
+            this.cbPort.Size = new System.Drawing.Size(56, 21);
             this.cbPort.TabIndex = 5;
             this.cbPort.Text = "COM1";
             // 
@@ -377,7 +381,7 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(29, 14);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(29, 12);
+            this.label5.Size = new System.Drawing.Size(26, 13);
             this.label5.TabIndex = 7;
             this.label5.Text = "Port";
             // 
@@ -387,9 +391,23 @@
             this.lblState.ForeColor = System.Drawing.Color.Crimson;
             this.lblState.Location = new System.Drawing.Point(150, 125);
             this.lblState.Name = "lblState";
-            this.lblState.Size = new System.Drawing.Size(161, 12);
+            this.lblState.Size = new System.Drawing.Size(138, 13);
             this.lblState.TabIndex = 2;
             this.lblState.Text = "Current State:Disconnected";
+            // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.WorkerReportsProgress = true;
+            this.backgroundWorker1.WorkerSupportsCancellation = true;
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
+            // downloadAttendanceRecord
+            // 
+            this.downloadAttendanceRecord.WorkerReportsProgress = true;
+            this.downloadAttendanceRecord.WorkerSupportsCancellation = true;
+            this.downloadAttendanceRecord.DoWork += new System.ComponentModel.DoWorkEventHandler(this.downloadAttendanceRecord_DoWork);
+            this.downloadAttendanceRecord.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.downloadAttendanceRecord_RunWorkerCompleted);
             // 
             // AttLogsMain
             // 
@@ -451,6 +469,8 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Button btnClearGLog;
         private System.Windows.Forms.Button btnGetDeviceStatus;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker downloadAttendanceRecord;
     }
 }
 
